@@ -1,14 +1,95 @@
 module Main exposing (..)
 
-import Html exposing (Html)
+import Color exposing (..)
+import Collage exposing (..)
+import Element exposing (..)
+import Text
+import Char
+import Time exposing (..)
+import Window exposing (..)
+import Html exposing (..)
+import Keyboard exposing (..)
+import Set exposing (Set)
+import Task
+import AnimationFrame
 
 
-{--Part 1: Model the user input ----------------------------------------------
-What information do you need to represent all relevant user input?
-Task: Redefine `UserInput` to include all of the information you need.
-      Redifene `userInput` to be a signal that correctly models the user
-      input as described by `UserInput`.
-------------------------------------------------------------------------------}
+main : Platform.Program Never GameState Msg
+main =
+    program
+        { init = ( initialGame, initialSizeCmd )
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+
+-- initialSizeCmd/sizeToMsg technique taken from this answer :
+--     https://www.reddit.com/r/elm/comments/4jfo32/getting_the_initial_window_dimensions/d369kw1/
+--
+-- to this question :
+--     https://www.reddit.com/r/elm/comments/4jfo32/getting_the_initial_window_dimensions/
+
+
+initialSizeCmd : Cmd Msg
+initialSizeCmd =
+    Task.perform sizeToMsg (Window.size)
+
+
+sizeToMsg : Window.Size -> Msg
+sizeToMsg size =
+    WindowResize ( size.width, size.height )
+
+
+
+-- MODEL
+
+
+( gameWidth, gameHeight ) =
+    ( 600, 400 )
+( halfWidth, halfHeight ) =
+    ( gameWidth / 2, gameHeight / 2 )
+type alias GameState =
+    { keysDown : Set KeyCode
+    , windowDimensions : ( Int, Int )
+    , objects : List ( Object, Int, Int )
+    , player : Player
+    }
+
+
+initialGame : GameState
+initialGame =
+    { keysDown = Set.empty, windowDimensions = ( 0, 0 ), objects = [], player = initialPlayer }
+
+
+initialPlayer : Player
+initialPlayer =
+    { orientation = North
+    , position = ( 0, 0 )
+    }
+
+
+type alias Player =
+    { orientation : Orientation
+    , position : ( Int, Int )
+    }
+
+
+type Orientation
+    = North
+    | East
+    | South
+    | West
+
+
+type Object
+    = Bath
+    | Sink
+    | Bed
+    | Stove
+    | Microwave
+    | Computer
 
 
 type Direction
@@ -20,12 +101,12 @@ type Direction
 
 
 type alias KeyInput =
-    Bool Direction
+    { space : Bool, direction : Direction, delta : Float }
 
 
 defaultKeyInput : KeyInput
 defaultKeyInput =
-    False Neutral
+    { space = False, direction = Neutral, delta = 0 }
 
 
 type Key
@@ -35,7 +116,7 @@ type Key
     | RightKey
 
 
-updateDirection : Key Direction
+updateDirection : Key -> Direction
 updateDirection key =
     case key of
         UpKey ->
@@ -52,81 +133,111 @@ updateDirection key =
 
 
 
--- 'UP' for up and 'DOWN' for down
-{--Part 2: Model the game ----------------------------------------------------
-What information do you need to represent the entire game?
-Tasks: Redefine `GameState` to represent your particular game.
-       Redefine `defaultGame` to represent your initial game state.
-For example, if you want to represent many objects that just have a position,
-your GameState might just be a list of coordinates and your default game might
-be an empty list (no objects at the start):
-    data GameState = GameState [(Float,Float)]
-    defaultGame = GameState []
-------------------------------------------------------------------------------}
+-- UPDATE
 
 
-type Orientation
-    = North
-    | East
-    | South
-    | West
-
-
-type Object
-    = Player
-    | Bath
-    | Sink
-    | Bed
-    | Stove
-    | Microwave
-    | Computer
-
-
-type alias GameState =
-    { orientation : Orientation
-    , objects : List ( Object, Float, Float )
+updateGame : KeyInput -> GameState -> GameState
+updateGame { delta, direction } ({ player } as game) =
+    { game
+        | player = updatePlayer delta direction player
     }
 
 
-defaultGameState : GameState
-defaultGameState =
-    { orientation = North, objects = [] }
+updatePlayer : Time -> Direction -> Player -> Player
+updatePlayer t dir ({ position } as player) =
+    let
+        newPos =
+            case dir of
+                Right ->
+                    Tuple.mapFirst (\x -> x + 200 * round (t)) position
+
+                Left ->
+                    Tuple.mapFirst (\x -> x - 200 * round (t)) position
+
+                Up ->
+                    Tuple.mapSecond (\x -> x + 200 * round (t)) position
+
+                Down ->
+                    Tuple.mapSecond (\x -> x - 200 * round (t)) position
+
+                Neutral ->
+                    position
+    in
+        { player
+            | position = newPos
+        }
+
+
+getInput : GameState -> Float -> KeyInput
+getInput game delta =
+    { space = Set.member (Char.toCode ' ') (game.keysDown)
+    , direction =
+        if Set.member 37 (game.keysDown) then
+            Left
+        else if Set.member 38 (game.keysDown) then
+            Up
+        else if Set.member 38 (game.keysDown) then
+            Right
+        else if Set.member 40 (game.keysDown) then
+            Down
+        else
+            Neutral
+    , delta = inSeconds delta
+    }
+
+
+type Msg
+    = KeyDown KeyCode
+    | KeyUp KeyCode
+    | WindowResize ( Int, Int )
+    | Tick Float
+    | NoOp
+
+
+update : Msg -> GameState -> ( GameState, Cmd Msg )
+update msg game =
+    case msg of
+        KeyDown key ->
+            ( { game | keysDown = Set.insert key game.keysDown }, Cmd.none )
+
+        KeyUp key ->
+            ( { game | keysDown = Set.remove key game.keysDown }, Cmd.none )
+
+        Tick delta ->
+            let
+                input =
+                    getInput game delta
+            in
+                ( updateGame input game, Cmd.none )
+
+        WindowResize dim ->
+            ( { game | windowDimensions = dim }, Cmd.none )
+
+        NoOp ->
+            ( game, Cmd.none )
 
 
 
-{--Part 3: Update the game ---------------------------------------------------
-How does the game step from one state to another based on user input?
-Task: redefine `stepGame` to use the UserInput and GameState
-      you defined in parts 1 and 2. Maybe use some helper functions
-      to break up the work, stepping smaller parts of the game.
-------------------------------------------------------------------------------}
-{--Part 4: Display the game --------------------------------------------------
-How should the GameState be displayed to the user?
-Task: redefine `display` to use the GameState you defined in part 2.
-------------------------------------------------------------------------------}
+-- SUBSCRIPTIONS
 
 
-display ( w, h ) gameState =
-    asText gameState
+subscriptions : a -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ Keyboard.downs KeyDown
+        , Keyboard.ups KeyUp
+        , Window.resizes sizeToMsg
+        , AnimationFrame.diffs Tick
+        ]
 
 
 
-{--That's all folks! ---------------------------------------------------------
-The following code puts it all together and show it on screen.
-------------------------------------------------------------------------------}
+-- VIEW
 
 
-delta =
-    fps 60
-
-
-input =
-    sampleOn delta (lift2 Input delta userInput)
-
-
-gameState =
-    foldp stepGame defaultGame input
-
-
-main =
-    lift2 display Window.dimensions gameState
+view : GameState -> Html Msg
+view state =
+    div []
+        [ div [] [ Html.text (toString state.player.position) ]
+        , div [] [ Html.text (toString state.keysDown) ]
+        ]
