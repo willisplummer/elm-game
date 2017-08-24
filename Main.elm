@@ -3,7 +3,6 @@ module Main exposing (..)
 import Color exposing (..)
 import Collage exposing (..)
 import Element exposing (..)
-import Text
 import Char
 import Time exposing (..)
 import Window exposing (..)
@@ -40,12 +39,6 @@ initialSizeCmd =
 sizeToMsg : Window.Size -> Msg
 sizeToMsg size =
     WindowResize ( size.width, size.height )
-
-
-( gameWidth, gameHeight ) =
-    ( 600, 400 )
-( halfWidth, halfHeight ) =
-    ( gameWidth / 2, gameHeight / 2 )
 
 
 
@@ -232,8 +225,47 @@ subscriptions _ =
 -- VIEW
 
 
+gameWidth : Float
+gameWidth =
+    600
+
+
+gameHeight : Float
+gameHeight =
+    400
+
+
 view : GameState -> Html Msg
-view state =
-    div []
-        [ div [] [ Html.text (toString state.player.position) ]
-        ]
+view { windowDimensions, objects, player } =
+    let
+        ( w, h ) =
+            windowDimensions
+    in
+        toHtml <|
+            container w h middle <|
+                collage (round gameWidth)
+                    (round gameHeight)
+                    [ rect gameWidth gameHeight
+                        |> filled pongGreen
+                    , verticalLine gameHeight
+                        |> traced (dashed red)
+                    , oval 15 15
+                        |> make player
+                    ]
+
+
+verticalLine : Float -> Path
+verticalLine height =
+    path [ ( 0, height ), ( 0, -height ) ]
+
+
+pongGreen : Color
+pongGreen =
+    rgb 60 100 60
+
+
+make : { a | position : ( Float, Float ) } -> Shape -> Form
+make obj shape =
+    shape
+        |> filled white
+        |> move obj.position
