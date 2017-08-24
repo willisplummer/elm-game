@@ -134,27 +134,28 @@ updateGame { delta, direction } ({ player } as game) =
 
 
 updatePlayer : Time -> Direction -> Player -> Player
-updatePlayer t dir ({ position } as player) =
+updatePlayer t dir ({ position, orientation } as player) =
     let
-        newPos =
+        ( newPos, newOrientation ) =
             case dir of
                 Right ->
-                    Tuple.mapFirst (\x -> x + 200 * t) position
+                    ( Tuple.mapFirst (\x -> x + 200 * t) position, East )
 
                 Left ->
-                    Tuple.mapFirst (\x -> x - 200 * t) position
+                    ( Tuple.mapFirst (\x -> x - 200 * t) position, West )
 
                 Up ->
-                    Tuple.mapSecond (\x -> x + 200 * t) position
+                    ( Tuple.mapSecond (\x -> x + 200 * t) position, North )
 
                 Down ->
-                    Tuple.mapSecond (\x -> x - 200 * t) position
+                    ( Tuple.mapSecond (\x -> x - 200 * t) position, South )
 
                 Neutral ->
-                    position
+                    ( position, orientation )
     in
         { player
             | position = newPos
+            , orientation = newOrientation
         }
 
 

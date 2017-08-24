@@ -11746,59 +11746,6 @@ var _user$project$Main$view = function (_p0) {
 					}
 				})));
 };
-var _user$project$Main$updatePlayer = F3(
-	function (t, dir, _p3) {
-		var _p4 = _p3;
-		var _p6 = _p4.position;
-		var newPos = function () {
-			var _p5 = dir;
-			switch (_p5.ctor) {
-				case 'Right':
-					return A2(
-						_elm_lang$core$Tuple$mapFirst,
-						function (x) {
-							return x + (200 * t);
-						},
-						_p6);
-				case 'Left':
-					return A2(
-						_elm_lang$core$Tuple$mapFirst,
-						function (x) {
-							return x - (200 * t);
-						},
-						_p6);
-				case 'Up':
-					return A2(
-						_elm_lang$core$Tuple$mapSecond,
-						function (x) {
-							return x + (200 * t);
-						},
-						_p6);
-				case 'Down':
-					return A2(
-						_elm_lang$core$Tuple$mapSecond,
-						function (x) {
-							return x - (200 * t);
-						},
-						_p6);
-				default:
-					return _p6;
-			}
-		}();
-		return _elm_lang$core$Native_Utils.update(
-			_p4,
-			{position: newPos});
-	});
-var _user$project$Main$updateGame = F2(
-	function (_p8, _p7) {
-		var _p9 = _p8;
-		var _p10 = _p7;
-		return _elm_lang$core$Native_Utils.update(
-			_p10,
-			{
-				player: A3(_user$project$Main$updatePlayer, _p9.delta, _p9.direction, _p10.player)
-			});
-	});
 var _user$project$Main$GameState = F4(
 	function (a, b, c, d) {
 		return {keysDown: a, windowDimensions: b, objects: c, player: d};
@@ -11825,6 +11772,77 @@ var _user$project$Main$initialGame = {
 	objects: {ctor: '[]'},
 	player: _user$project$Main$initialPlayer
 };
+var _user$project$Main$updatePlayer = F3(
+	function (t, dir, _p3) {
+		var _p4 = _p3;
+		var _p7 = _p4.position;
+		var _p5 = function () {
+			var _p6 = dir;
+			switch (_p6.ctor) {
+				case 'Right':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(
+							_elm_lang$core$Tuple$mapFirst,
+							function (x) {
+								return x + (200 * t);
+							},
+							_p7),
+						_1: _user$project$Main$East
+					};
+				case 'Left':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(
+							_elm_lang$core$Tuple$mapFirst,
+							function (x) {
+								return x - (200 * t);
+							},
+							_p7),
+						_1: _user$project$Main$West
+					};
+				case 'Up':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(
+							_elm_lang$core$Tuple$mapSecond,
+							function (x) {
+								return x + (200 * t);
+							},
+							_p7),
+						_1: _user$project$Main$North
+					};
+				case 'Down':
+					return {
+						ctor: '_Tuple2',
+						_0: A2(
+							_elm_lang$core$Tuple$mapSecond,
+							function (x) {
+								return x - (200 * t);
+							},
+							_p7),
+						_1: _user$project$Main$South
+					};
+				default:
+					return {ctor: '_Tuple2', _0: _p7, _1: _p4.orientation};
+			}
+		}();
+		var newPos = _p5._0;
+		var newOrientation = _p5._1;
+		return _elm_lang$core$Native_Utils.update(
+			_p4,
+			{position: newPos, orientation: newOrientation});
+	});
+var _user$project$Main$updateGame = F2(
+	function (_p9, _p8) {
+		var _p10 = _p9;
+		var _p11 = _p8;
+		return _elm_lang$core$Native_Utils.update(
+			_p11,
+			{
+				player: A3(_user$project$Main$updatePlayer, _p10.delta, _p10.direction, _p11.player)
+			});
+	});
 var _user$project$Main$Computer = {ctor: 'Computer'};
 var _user$project$Main$Microwave = {ctor: 'Microwave'};
 var _user$project$Main$Stove = {ctor: 'Stove'};
@@ -11837,8 +11855,8 @@ var _user$project$Main$Left = {ctor: 'Left'};
 var _user$project$Main$Down = {ctor: 'Down'};
 var _user$project$Main$Up = {ctor: 'Up'};
 var _user$project$Main$updateDirection = function (key) {
-	var _p11 = key;
-	switch (_p11.ctor) {
+	var _p12 = key;
+	switch (_p12.ctor) {
 		case 'UpKey':
 			return _user$project$Main$Up;
 		case 'DownKey':
@@ -11863,15 +11881,15 @@ var _user$project$Main$getInput = F2(
 	});
 var _user$project$Main$update = F2(
 	function (msg, game) {
-		var _p12 = msg;
-		switch (_p12.ctor) {
+		var _p13 = msg;
+		switch (_p13.ctor) {
 			case 'KeyDown':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
 						{
-							keysDown: A2(_elm_lang$core$Set$insert, _p12._0, game.keysDown)
+							keysDown: A2(_elm_lang$core$Set$insert, _p13._0, game.keysDown)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -11881,12 +11899,12 @@ var _user$project$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
 						{
-							keysDown: A2(_elm_lang$core$Set$remove, _p12._0, game.keysDown)
+							keysDown: A2(_elm_lang$core$Set$remove, _p13._0, game.keysDown)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
-				var input = A2(_user$project$Main$getInput, game, _p12._0);
+				var input = A2(_user$project$Main$getInput, game, _p13._0);
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_user$project$Main$updateGame, input, game),
@@ -11897,7 +11915,7 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
-						{windowDimensions: _p12._0}),
+						{windowDimensions: _p13._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
@@ -11926,7 +11944,7 @@ var _user$project$Main$KeyUp = function (a) {
 var _user$project$Main$KeyDown = function (a) {
 	return {ctor: 'KeyDown', _0: a};
 };
-var _user$project$Main$subscriptions = function (_p13) {
+var _user$project$Main$subscriptions = function (_p14) {
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',
