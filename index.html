@@ -11686,14 +11686,14 @@ var _evancz$elm_graphics$Collage$ngon = F2(
 				f,
 				A2(_elm_lang$core$List$range, 0, n - 1)));
 	});
-var _user$project$Main$make = F2(
-	function (obj, shape) {
+var _user$project$Main$make = F3(
+	function (obj, color, shape) {
 		return A2(
 			_evancz$elm_graphics$Collage$move,
 			obj.position,
-			A2(_evancz$elm_graphics$Collage$filled, _elm_lang$core$Color$white, shape));
+			A2(_evancz$elm_graphics$Collage$filled, color, shape));
 	});
-var _user$project$Main$pongGreen = A3(_elm_lang$core$Color$rgb, 60, 100, 60);
+var _user$project$Main$parquetFloorBrown = A3(_elm_lang$core$Color$rgb, 153, 76, 0);
 var _user$project$Main$verticalLine = function (height) {
 	return _evancz$elm_graphics$Collage$path(
 		{
@@ -11723,32 +11723,48 @@ var _user$project$Main$view = function (_p0) {
 				_evancz$elm_graphics$Collage$collage,
 				_elm_lang$core$Basics$round(_user$project$Main$gameWidth),
 				_elm_lang$core$Basics$round(_user$project$Main$gameHeight),
-				{
-					ctor: '::',
-					_0: A2(
-						_evancz$elm_graphics$Collage$filled,
-						_user$project$Main$pongGreen,
-						A2(_evancz$elm_graphics$Collage$rect, _user$project$Main$gameWidth, _user$project$Main$gameHeight)),
-					_1: {
+				_elm_lang$core$List$concat(
+					{
 						ctor: '::',
-						_0: A2(
-							_evancz$elm_graphics$Collage$traced,
-							_evancz$elm_graphics$Collage$dashed(_elm_lang$core$Color$red),
-							_user$project$Main$verticalLine(_user$project$Main$gameHeight)),
+						_0: {
+							ctor: '::',
+							_0: A2(
+								_evancz$elm_graphics$Collage$filled,
+								_user$project$Main$parquetFloorBrown,
+								A2(_evancz$elm_graphics$Collage$rect, _user$project$Main$gameWidth, _user$project$Main$gameHeight)),
+							_1: {ctor: '[]'}
+						},
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_user$project$Main$make,
-								_p1.player,
-								A2(_evancz$elm_graphics$Collage$oval, 15, 15)),
-							_1: {ctor: '[]'}
+								_elm_lang$core$List$map,
+								function (obj) {
+									return A3(_user$project$Main$make, obj, obj.color, obj.shape);
+								},
+								_p1.objects),
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '::',
+									_0: A3(
+										_user$project$Main$make,
+										_p1.player,
+										_elm_lang$core$Color$white,
+										A2(_evancz$elm_graphics$Collage$oval, 15, 15)),
+									_1: {ctor: '[]'}
+								},
+								_1: {ctor: '[]'}
+							}
 						}
-					}
-				})));
+					}))));
 };
 var _user$project$Main$GameState = F4(
 	function (a, b, c, d) {
 		return {keysDown: a, windowDimensions: b, objects: c, player: d};
+	});
+var _user$project$Main$PositionObject = F4(
+	function (a, b, c, d) {
+		return {color: a, kind: b, position: c, shape: d};
 	});
 var _user$project$Main$Player = F2(
 	function (a, b) {
@@ -11765,12 +11781,6 @@ var _user$project$Main$North = {ctor: 'North'};
 var _user$project$Main$initialPlayer = {
 	orientation: _user$project$Main$North,
 	position: {ctor: '_Tuple2', _0: 0, _1: 0}
-};
-var _user$project$Main$initialGame = {
-	keysDown: _elm_lang$core$Set$empty,
-	windowDimensions: {ctor: '_Tuple2', _0: 0, _1: 0},
-	objects: {ctor: '[]'},
-	player: _user$project$Main$initialPlayer
 };
 var _user$project$Main$updatePlayer = F3(
 	function (t, dir, _p3) {
@@ -11847,6 +11857,22 @@ var _user$project$Main$Computer = {ctor: 'Computer'};
 var _user$project$Main$Microwave = {ctor: 'Microwave'};
 var _user$project$Main$Stove = {ctor: 'Stove'};
 var _user$project$Main$Bed = {ctor: 'Bed'};
+var _user$project$Main$initialObjects = {
+	ctor: '::',
+	_0: {
+		color: _elm_lang$core$Color$green,
+		kind: _user$project$Main$Bed,
+		position: {ctor: '_Tuple2', _0: _user$project$Main$gameWidth / 2, _1: _user$project$Main$gameHeight / 2},
+		shape: A2(_evancz$elm_graphics$Collage$rect, 80, 160)
+	},
+	_1: {ctor: '[]'}
+};
+var _user$project$Main$initialGame = {
+	keysDown: _elm_lang$core$Set$empty,
+	windowDimensions: {ctor: '_Tuple2', _0: 0, _1: 0},
+	objects: _user$project$Main$initialObjects,
+	player: _user$project$Main$initialPlayer
+};
 var _user$project$Main$Sink = {ctor: 'Sink'};
 var _user$project$Main$Bath = {ctor: 'Bath'};
 var _user$project$Main$Neutral = {ctor: 'Neutral'};

@@ -48,14 +48,14 @@ sizeToMsg size =
 type alias GameState =
     { keysDown : Set KeyCode
     , windowDimensions : ( Int, Int )
-    , objects : List ( Object, Int, Int )
+    , objects : List PositionObject
     , player : Player
     }
 
 
 initialGame : GameState
 initialGame =
-    { keysDown = Set.empty, windowDimensions = ( 0, 0 ), objects = [], player = initialPlayer }
+    { keysDown = Set.empty, windowDimensions = ( 0, 0 ), objects = initialObjects, player = initialPlayer }
 
 
 initialPlayer : Player
@@ -63,6 +63,15 @@ initialPlayer =
     { orientation = North
     , position = ( 0, 0 )
     }
+
+
+type alias PositionObject =
+    { color : Color, kind : Object, position : ( Float, Float ), shape : Shape }
+
+
+initialObjects : List PositionObject
+initialObjects =
+    [ { color = green, kind = Bed, position = ( (gameWidth / 2), (gameHeight / 2) ), shape = rect 80 160 } ]
 
 
 type alias Player =
@@ -246,13 +255,22 @@ view { windowDimensions, objects, player } =
             container w h middle <|
                 collage (round gameWidth)
                     (round gameHeight)
-                    [ rect gameWidth gameHeight
-                        |> filled pongGreen
-                    , verticalLine gameHeight
-                        |> traced (dashed red)
-                    , oval 15 15
-                        |> make player
-                    ]
+                    (List.concat
+                        [ [ rect gameWidth gameHeight
+                                |> filled parquetFloorBrown
+                          ]
+                        , (List.map
+                            (\obj ->
+                                obj.shape
+                                    |> make obj obj.color
+                            )
+                            objects
+                          )
+                        , [ oval 15 15
+                                |> make player white
+                          ]
+                        ]
+                    )
 
 
 verticalLine : Float -> Path
@@ -260,13 +278,13 @@ verticalLine height =
     path [ ( 0, height ), ( 0, -height ) ]
 
 
-pongGreen : Color
-pongGreen =
-    rgb 60 100 60
+parquetFloorBrown : Color
+parquetFloorBrown =
+    rgb 153 76 0
 
 
-make : { a | position : ( Float, Float ) } -> Shape -> Form
-make obj shape =
+make : { a | position : ( Float, Float ) } -> Color -> Shape -> Form
+make obj color shape =
     shape
-        |> filled white
+        |> filled color
         |> move obj.position
