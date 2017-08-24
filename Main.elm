@@ -42,14 +42,16 @@ sizeToMsg size =
     WindowResize ( size.width, size.height )
 
 
-
--- MODEL
-
-
 ( gameWidth, gameHeight ) =
     ( 600, 400 )
 ( halfWidth, halfHeight ) =
     ( gameWidth / 2, gameHeight / 2 )
+
+
+
+-- MODEL
+
+
 type alias GameState =
     { keysDown : Set KeyCode
     , windowDimensions : ( Int, Int )
@@ -72,7 +74,7 @@ initialPlayer =
 
 type alias Player =
     { orientation : Orientation
-    , position : ( Int, Int )
+    , position : ( Float, Float )
     }
 
 
@@ -102,11 +104,6 @@ type Direction
 
 type alias KeyInput =
     { space : Bool, direction : Direction, delta : Float }
-
-
-defaultKeyInput : KeyInput
-defaultKeyInput =
-    { space = False, direction = Neutral, delta = 0 }
 
 
 type Key
@@ -149,16 +146,16 @@ updatePlayer t dir ({ position } as player) =
         newPos =
             case dir of
                 Right ->
-                    Tuple.mapFirst (\x -> x + 200 * round (t)) position
+                    Tuple.mapFirst (\x -> x + 200 * t) position
 
                 Left ->
-                    Tuple.mapFirst (\x -> x - 200 * round (t)) position
+                    Tuple.mapFirst (\x -> x - 200 * t) position
 
                 Up ->
-                    Tuple.mapSecond (\x -> x + 200 * round (t)) position
+                    Tuple.mapSecond (\x -> x + 200 * t) position
 
                 Down ->
-                    Tuple.mapSecond (\x -> x - 200 * round (t)) position
+                    Tuple.mapSecond (\x -> x - 200 * t) position
 
                 Neutral ->
                     position
@@ -176,7 +173,7 @@ getInput game delta =
             Left
         else if Set.member 38 (game.keysDown) then
             Up
-        else if Set.member 38 (game.keysDown) then
+        else if Set.member 39 (game.keysDown) then
             Right
         else if Set.member 40 (game.keysDown) then
             Down
@@ -239,5 +236,4 @@ view : GameState -> Html Msg
 view state =
     div []
         [ div [] [ Html.text (toString state.player.position) ]
-        , div [] [ Html.text (toString state.keysDown) ]
         ]

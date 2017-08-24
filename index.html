@@ -11727,28 +11727,28 @@ var _user$project$Main$updatePlayer = F3(
 					return A2(
 						_elm_lang$core$Tuple$mapFirst,
 						function (x) {
-							return x + (200 * _elm_lang$core$Basics$round(t));
+							return x + (200 * t);
 						},
 						_p3);
 				case 'Left':
 					return A2(
 						_elm_lang$core$Tuple$mapFirst,
 						function (x) {
-							return x - (200 * _elm_lang$core$Basics$round(t));
+							return x - (200 * t);
 						},
 						_p3);
 				case 'Up':
 					return A2(
 						_elm_lang$core$Tuple$mapSecond,
 						function (x) {
-							return x + (200 * _elm_lang$core$Basics$round(t));
+							return x + (200 * t);
 						},
 						_p3);
 				case 'Down':
 					return A2(
 						_elm_lang$core$Tuple$mapSecond,
 						function (x) {
-							return x - (200 * _elm_lang$core$Basics$round(t));
+							return x - (200 * t);
 						},
 						_p3);
 				default:
@@ -11808,7 +11808,6 @@ var _user$project$Main$Bed = {ctor: 'Bed'};
 var _user$project$Main$Sink = {ctor: 'Sink'};
 var _user$project$Main$Bath = {ctor: 'Bath'};
 var _user$project$Main$Neutral = {ctor: 'Neutral'};
-var _user$project$Main$defaultKeyInput = {space: false, direction: _user$project$Main$Neutral, delta: 0};
 var _user$project$Main$Right = {ctor: 'Right'};
 var _user$project$Main$Left = {ctor: 'Left'};
 var _user$project$Main$Down = {ctor: 'Down'};
@@ -11834,7 +11833,7 @@ var _user$project$Main$getInput = F2(
 				_elm_lang$core$Char$toCode(
 					_elm_lang$core$Native_Utils.chr(' ')),
 				game.keysDown),
-			direction: A2(_elm_lang$core$Set$member, 37, game.keysDown) ? _user$project$Main$Left : (A2(_elm_lang$core$Set$member, 38, game.keysDown) ? _user$project$Main$Up : (A2(_elm_lang$core$Set$member, 38, game.keysDown) ? _user$project$Main$Right : (A2(_elm_lang$core$Set$member, 40, game.keysDown) ? _user$project$Main$Down : _user$project$Main$Neutral))),
+			direction: A2(_elm_lang$core$Set$member, 37, game.keysDown) ? _user$project$Main$Left : (A2(_elm_lang$core$Set$member, 38, game.keysDown) ? _user$project$Main$Up : (A2(_elm_lang$core$Set$member, 39, game.keysDown) ? _user$project$Main$Right : (A2(_elm_lang$core$Set$member, 40, game.keysDown) ? _user$project$Main$Down : _user$project$Main$Neutral))),
 			delta: _elm_lang$core$Time$inSeconds(delta)
 		};
 	});
