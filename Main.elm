@@ -1,16 +1,16 @@
 module Main exposing (..)
 
-import Color exposing (..)
-import Collage exposing (..)
-import Element exposing (..)
+import AnimationFrame
 import Char
-import Time exposing (..)
-import Window exposing (..)
+import Collage exposing (..)
+import Color exposing (..)
+import Element exposing (..)
 import Html exposing (..)
 import Keyboard exposing (..)
 import Set exposing (Set)
 import Task
-import AnimationFrame
+import Time exposing (..)
+import Window exposing (..)
 
 
 main : Platform.Program Never GameState Msg
@@ -33,7 +33,7 @@ main =
 
 initialSizeCmd : Cmd Msg
 initialSizeCmd =
-    Task.perform sizeToMsg (Window.size)
+    Task.perform sizeToMsg Window.size
 
 
 sizeToMsg : Window.Size -> Msg
@@ -71,7 +71,7 @@ type alias PositionObject =
 
 initialObjects : List PositionObject
 initialObjects =
-    [ { color = green, kind = Bed, position = ( (gameWidth / 2), (gameHeight / 2) ), shape = rect 80 160 } ]
+    [ { color = green, kind = Bed, position = ( gameWidth / 2, gameHeight / 2 ), shape = rect 80 160 } ]
 
 
 type alias Player =
@@ -96,93 +96,94 @@ type Object
     | Computer
 
 
-type Direction
-    = Up
-    | Down
-    | Left
-    | Right
-    | Neutral
-
-
-type alias KeyInput =
-    { space : Bool, direction : Direction, delta : Float }
-
-
-type Key
-    = UpKey
-    | DownKey
-    | LeftKey
-    | RightKey
-
-
-updateDirection : Key -> Direction
-updateDirection key =
-    case key of
-        UpKey ->
-            Up
-
-        DownKey ->
-            Down
-
-        LeftKey ->
-            Left
-
-        RightKey ->
-            Right
-
-
 
 -- UPDATE
 
 
 updateGame : KeyInput -> GameState -> GameState
-updateGame { delta, direction } ({ player } as game) =
+updateGame { delta, horizontalDirection, verticalDirection } ({ player } as game) =
     { game
-        | player = updatePlayer delta direction player
+        | player = updatePlayer delta horizontalDirection verticalDirection player
     }
 
 
-updatePlayer : Time -> Direction -> Player -> Player
-updatePlayer t dir ({ position, orientation } as player) =
+updatePlayer : Time -> HorizontalDirection -> VerticalDirection -> Player -> Player
+updatePlayer t hdir vdir ({ position, orientation } as player) =
     let
-        ( newPos, newOrientation ) =
-            case dir of
-                Right ->
-                    ( Tuple.mapFirst (\x -> x + 200 * t) position, East )
+        rateOfMovement =
+            200
 
-                Left ->
-                    ( Tuple.mapFirst (\x -> x - 200 * t) position, West )
+        oldHPos =
+            Tuple.first position
 
-                Up ->
-                    ( Tuple.mapSecond (\x -> x + 200 * t) position, North )
+        newHPos =
+            case hdir of
+                HLeft ->
+                    oldHPos - rateOfMovement * t
 
-                Down ->
-                    ( Tuple.mapSecond (\x -> x - 200 * t) position, South )
+                HRight ->
+                    oldHPos + rateOfMovement * t
 
-                Neutral ->
-                    ( position, orientation )
+                HorizontalNeutral ->
+                    oldHPos
+
+        oldVPos =
+            Tuple.second position
+
+        newVPos =
+            case vdir of
+                VDown ->
+                    oldVPos - rateOfMovement * t
+
+                VUp ->
+                    oldVPos + rateOfMovement * t
+
+                VerticalNeutral ->
+                    oldVPos
     in
-        { player
-            | position = newPos
-            , orientation = newOrientation
-        }
+    { player
+        | position = ( newHPos, newVPos )
+    }
+
+
+type HorizontalDirection
+    = HLeft
+    | HRight
+    | HorizontalNeutral
+
+
+type VerticalDirection
+    = VUp
+    | VDown
+    | VerticalNeutral
+
+
+type alias KeyInput =
+    { space : Bool, horizontalDirection : HorizontalDirection, verticalDirection : VerticalDirection, delta : Float }
 
 
 getInput : GameState -> Float -> KeyInput
 getInput game delta =
-    { space = Set.member (Char.toCode ' ') (game.keysDown)
-    , direction =
-        if Set.member 37 (game.keysDown) then
-            Left
-        else if Set.member 38 (game.keysDown) then
-            Up
-        else if Set.member 39 (game.keysDown) then
-            Right
-        else if Set.member 40 (game.keysDown) then
-            Down
-        else
-            Neutral
+    { space = Set.member (Char.toCode ' ') game.keysDown
     , delta = inSeconds delta
+    , horizontalDirection =
+        if Set.member 37 game.keysDown && Set.member 39 game.keysDown then
+            HorizontalNeutral
+        else if Set.member 37 game.keysDown then
+            HLeft
+        else if Set.member 39 game.keysDown then
+            HRight
+        else
+            HorizontalNeutral
+    , verticalDirection =
+        if Set.member 38 game.keysDown && Set.member 40 game.keysDown then
+            VerticalNeutral
+        else if Set.member 38 game.keysDown then
+            VUp
+        else if Set.member 40 game.keysDown then
+            VDown
+        else
+            VerticalNeutral
     }
 
 
@@ -208,7 +209,7 @@ update msg game =
                 input =
                     getInput game delta
             in
-                ( updateGame input game, Cmd.none )
+            ( updateGame input game, Cmd.none )
 
         WindowResize dim ->
             ( { game | windowDimensions = dim }, Cmd.none )
@@ -251,26 +252,25 @@ view { windowDimensions, objects, player } =
         ( w, h ) =
             windowDimensions
     in
-        toHtml <|
-            container w h middle <|
-                collage (round gameWidth)
-                    (round gameHeight)
-                    (List.concat
-                        [ [ rect gameWidth gameHeight
-                                |> filled parquetFloorBrown
-                          ]
-                        , (List.map
-                            (\obj ->
-                                obj.shape
-                                    |> make obj obj.color
-                            )
-                            objects
-                          )
-                        , [ oval 15 15
-                                |> make player white
-                          ]
-                        ]
-                    )
+    toHtml <|
+        container w h middle <|
+            collage (round gameWidth)
+                (round gameHeight)
+                (List.concat
+                    [ [ rect gameWidth gameHeight
+                            |> filled parquetFloorBrown
+                      ]
+                    , List.map
+                        (\obj ->
+                            obj.shape
+                                |> make obj obj.color
+                        )
+                        objects
+                    , [ oval 15 15
+                            |> make player white
+                      ]
+                    ]
+                )
 
 
 verticalLine : Float -> Path
