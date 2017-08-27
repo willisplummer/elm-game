@@ -11793,14 +11793,28 @@ var _user$project$Main$updatePlayer = F4(
 				position: {ctor: '_Tuple2', _0: newHPos, _1: newVPos}
 			});
 	});
+var _user$project$Main$checkCollisions = function (_p8) {
+	var _p9 = _p8;
+	return A2(
+		_elm_lang$core$List$member,
+		true,
+		A2(
+			_elm_lang$core$List$map,
+			function (x) {
+				return _elm_lang$core$Native_Utils.eq(x.position, _p9.player.position);
+			},
+			_p9.objects));
+};
 var _user$project$Main$updateGame = F2(
-	function (_p9, _p8) {
-		var _p10 = _p9;
-		var _p11 = _p8;
-		return _elm_lang$core$Native_Utils.update(
-			_p11,
+	function (_p11, _p10) {
+		var _p12 = _p11;
+		var _p13 = _p10;
+		var _p14 = _p13;
+		var isColliding = _user$project$Main$checkCollisions(_p14);
+		return isColliding ? _p14 : _elm_lang$core$Native_Utils.update(
+			_p14,
 			{
-				player: A4(_user$project$Main$updatePlayer, _p10.delta, _p10.horizontalDirection, _p10.verticalDirection, _p11.player)
+				player: A4(_user$project$Main$updatePlayer, _p12.delta, _p12.horizontalDirection, _p12.verticalDirection, _p13.player)
 			});
 	});
 var _user$project$Main$GameState = F4(
@@ -11870,15 +11884,15 @@ var _user$project$Main$getInput = F2(
 	});
 var _user$project$Main$update = F2(
 	function (msg, game) {
-		var _p12 = msg;
-		switch (_p12.ctor) {
+		var _p15 = msg;
+		switch (_p15.ctor) {
 			case 'KeyDown':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
 						{
-							keysDown: A2(_elm_lang$core$Set$insert, _p12._0, game.keysDown)
+							keysDown: A2(_elm_lang$core$Set$insert, _p15._0, game.keysDown)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -11888,12 +11902,12 @@ var _user$project$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
 						{
-							keysDown: A2(_elm_lang$core$Set$remove, _p12._0, game.keysDown)
+							keysDown: A2(_elm_lang$core$Set$remove, _p15._0, game.keysDown)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
-				var input = A2(_user$project$Main$getInput, game, _p12._0);
+				var input = A2(_user$project$Main$getInput, game, _p15._0);
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_user$project$Main$updateGame, input, game),
@@ -11904,7 +11918,7 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
-						{windowDimensions: _p12._0}),
+						{windowDimensions: _p15._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
@@ -11929,7 +11943,7 @@ var _user$project$Main$KeyUp = function (a) {
 var _user$project$Main$KeyDown = function (a) {
 	return {ctor: 'KeyDown', _0: a};
 };
-var _user$project$Main$subscriptions = function (_p13) {
+var _user$project$Main$subscriptions = function (_p16) {
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',

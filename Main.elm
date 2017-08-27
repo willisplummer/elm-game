@@ -102,9 +102,21 @@ type Object
 
 updateGame : KeyInput -> GameState -> GameState
 updateGame { delta, horizontalDirection, verticalDirection } ({ player } as game) =
-    { game
-        | player = updatePlayer delta horizontalDirection verticalDirection player
-    }
+    let
+        isColliding =
+            checkCollisions game
+    in
+    if isColliding then
+        game
+    else
+        { game
+            | player = updatePlayer delta horizontalDirection verticalDirection player
+        }
+
+
+checkCollisions : GameState -> Bool
+checkCollisions { player, objects } =
+    List.member True (List.map (\x -> x.position == player.position) objects)
 
 
 updatePlayer : Time -> HorizontalDirection -> VerticalDirection -> Player -> Player
