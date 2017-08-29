@@ -11710,6 +11710,7 @@ var _user$project$Main$gameHeight = 400;
 var _user$project$Main$gameWidth = 600;
 var _user$project$Main$view = function (_p0) {
 	var _p1 = _p0;
+	var _p3 = _p1.player;
 	var _p2 = _p1.windowDimensions;
 	var w = _p2._0;
 	var h = _p2._1;
@@ -11739,7 +11740,14 @@ var _user$project$Main$view = function (_p0) {
 							_0: A2(
 								_elm_lang$core$List$map,
 								function (obj) {
-									return A3(_user$project$Main$make, obj, obj.color, obj.shape);
+									return A3(
+										_user$project$Main$make,
+										obj,
+										obj.color,
+										A2(
+											_evancz$elm_graphics$Collage$rect,
+											_elm_lang$core$Tuple$first(obj.size),
+											_elm_lang$core$Tuple$second(obj.size)));
 								},
 								_p1.objects),
 							_1: {
@@ -11748,9 +11756,12 @@ var _user$project$Main$view = function (_p0) {
 									ctor: '::',
 									_0: A3(
 										_user$project$Main$make,
-										_p1.player,
+										_p3,
 										_elm_lang$core$Color$white,
-										A2(_evancz$elm_graphics$Collage$oval, 15, 15)),
+										A2(
+											_evancz$elm_graphics$Collage$oval,
+											_elm_lang$core$Tuple$first(_p3.size),
+											_elm_lang$core$Tuple$second(_p3.size))),
 									_1: {ctor: '[]'}
 								},
 								_1: {ctor: '[]'}
@@ -11758,64 +11769,29 @@ var _user$project$Main$view = function (_p0) {
 						}
 					}))));
 };
-var _user$project$Main$updatePlayer = F4(
-	function (t, hdir, vdir, _p3) {
-		var _p4 = _p3;
-		var _p7 = _p4.position;
-		var oldVPos = _elm_lang$core$Tuple$second(_p7);
-		var oldHPos = _elm_lang$core$Tuple$first(_p7);
-		var rateOfMovement = 200;
-		var newHPos = function () {
-			var _p5 = hdir;
-			switch (_p5.ctor) {
-				case 'HLeft':
-					return oldHPos - (rateOfMovement * t);
-				case 'HRight':
-					return oldHPos + (rateOfMovement * t);
-				default:
-					return oldHPos;
-			}
-		}();
-		var newVPos = function () {
-			var _p6 = vdir;
-			switch (_p6.ctor) {
-				case 'VDown':
-					return oldVPos - (rateOfMovement * t);
-				case 'VUp':
-					return oldVPos + (rateOfMovement * t);
-				default:
-					return oldVPos;
-			}
-		}();
-		return _elm_lang$core$Native_Utils.update(
-			_p4,
-			{
-				position: {ctor: '_Tuple2', _0: newHPos, _1: newVPos}
-			});
+var _user$project$Main$right = F2(
+	function (_p5, _p4) {
+		var _p6 = _p5;
+		var _p7 = _p4;
+		return _p6._0 + (_p7._0 / 2);
 	});
-var _user$project$Main$checkCollisions = function (_p8) {
-	var _p9 = _p8;
-	return A2(
-		_elm_lang$core$List$member,
-		true,
-		A2(
-			_elm_lang$core$List$map,
-			function (x) {
-				return _elm_lang$core$Native_Utils.eq(x.position, _p9.player.position);
-			},
-			_p9.objects));
-};
-var _user$project$Main$updateGame = F2(
-	function (_p11, _p10) {
-		var _p12 = _p11;
-		var _p13 = _p10;
+var _user$project$Main$bottom = F2(
+	function (_p9, _p8) {
+		var _p10 = _p9;
+		var _p11 = _p8;
+		return _p10._1 - (_p11._1 / 2);
+	});
+var _user$project$Main$left = F2(
+	function (_p13, _p12) {
 		var _p14 = _p13;
-		var isColliding = _user$project$Main$checkCollisions(_p14);
-		return isColliding ? _p14 : _elm_lang$core$Native_Utils.update(
-			_p14,
-			{
-				player: A4(_user$project$Main$updatePlayer, _p12.delta, _p12.horizontalDirection, _p12.verticalDirection, _p13.player)
-			});
+		var _p15 = _p12;
+		return _p14._0 - (_p15._0 / 2);
+	});
+var _user$project$Main$top = F2(
+	function (_p17, _p16) {
+		var _p18 = _p17;
+		var _p19 = _p16;
+		return _p18._1 + (_p19._1 / 2);
 	});
 var _user$project$Main$GameState = F4(
 	function (a, b, c, d) {
@@ -11823,15 +11799,15 @@ var _user$project$Main$GameState = F4(
 	});
 var _user$project$Main$PositionObject = F4(
 	function (a, b, c, d) {
-		return {color: a, kind: b, position: c, shape: d};
+		return {color: a, kind: b, position: c, size: d};
 	});
-var _user$project$Main$Player = F2(
-	function (a, b) {
-		return {orientation: a, position: b};
+var _user$project$Main$Player = F3(
+	function (a, b, c) {
+		return {orientation: a, position: b, size: c};
 	});
-var _user$project$Main$KeyInput = F4(
-	function (a, b, c, d) {
-		return {space: a, horizontalDirection: b, verticalDirection: c, delta: d};
+var _user$project$Main$KeyInput = F3(
+	function (a, b, c) {
+		return {space: a, directions: b, delta: c};
 	});
 var _user$project$Main$West = {ctor: 'West'};
 var _user$project$Main$South = {ctor: 'South'};
@@ -11839,7 +11815,8 @@ var _user$project$Main$East = {ctor: 'East'};
 var _user$project$Main$North = {ctor: 'North'};
 var _user$project$Main$initialPlayer = {
 	orientation: _user$project$Main$North,
-	position: {ctor: '_Tuple2', _0: 0, _1: 0}
+	position: {ctor: '_Tuple2', _0: 0, _1: 0},
+	size: {ctor: '_Tuple2', _0: 15, _1: 15}
 };
 var _user$project$Main$Computer = {ctor: 'Computer'};
 var _user$project$Main$Microwave = {ctor: 'Microwave'};
@@ -11851,7 +11828,7 @@ var _user$project$Main$initialObjects = {
 		color: _elm_lang$core$Color$green,
 		kind: _user$project$Main$Bed,
 		position: {ctor: '_Tuple2', _0: _user$project$Main$gameWidth / 2, _1: _user$project$Main$gameHeight / 2},
-		shape: A2(_evancz$elm_graphics$Collage$rect, 80, 160)
+		size: {ctor: '_Tuple2', _0: 80, _1: 160}
 	},
 	_1: {ctor: '[]'}
 };
@@ -11863,14 +11840,128 @@ var _user$project$Main$initialGame = {
 };
 var _user$project$Main$Sink = {ctor: 'Sink'};
 var _user$project$Main$Bath = {ctor: 'Bath'};
-var _user$project$Main$HorizontalNeutral = {ctor: 'HorizontalNeutral'};
-var _user$project$Main$HRight = {ctor: 'HRight'};
-var _user$project$Main$HLeft = {ctor: 'HLeft'};
-var _user$project$Main$VerticalNeutral = {ctor: 'VerticalNeutral'};
-var _user$project$Main$VDown = {ctor: 'VDown'};
-var _user$project$Main$VUp = {ctor: 'VUp'};
+var _user$project$Main$Down = {ctor: 'Down'};
+var _user$project$Main$Up = {ctor: 'Up'};
+var _user$project$Main$Right = {ctor: 'Right'};
+var _user$project$Main$Left = {ctor: 'Left'};
+var _user$project$Main$canGo = function (player) {
+	var alwaysCan = {
+		ctor: '::',
+		_0: _user$project$Main$Left,
+		_1: {
+			ctor: '::',
+			_0: _user$project$Main$Right,
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$Down,
+				_1: {ctor: '[]'}
+			}
+		}
+	};
+	var pRight = A2(_user$project$Main$right, player.position, player.size);
+	var pLeft = A2(_user$project$Main$left, player.position, player.size);
+	var pBottom = A2(_user$project$Main$bottom, player.position, player.size);
+	var pTop = A2(_user$project$Main$top, player.position, player.size);
+	var rightLimit = _user$project$Main$gameWidth / 2;
+	var atRight = _elm_lang$core$Native_Utils.cmp(rightLimit, pRight) < 1;
+	var leftLimit = 0 - (_user$project$Main$gameWidth / 2);
+	var atLeft = _elm_lang$core$Native_Utils.cmp(leftLimit, pLeft) > -1;
+	var lowerLimit = 0 - (_user$project$Main$gameHeight / 2);
+	var atBottom = _elm_lang$core$Native_Utils.cmp(lowerLimit, pBottom) > -1;
+	var upperLimit = _user$project$Main$gameHeight / 2;
+	var atTop = _elm_lang$core$Native_Utils.cmp(upperLimit, pTop) < 1;
+	return atTop ? alwaysCan : A2(
+		_elm_lang$core$Basics_ops['++'],
+		alwaysCan,
+		{
+			ctor: '::',
+			_0: _user$project$Main$Up,
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$Main$updatePlayer = F3(
+	function (t, directions, _p20) {
+		var _p21 = _p20;
+		var _p23 = _p21;
+		var validDirections = A2(
+			_elm_lang$core$List$filter,
+			function (x) {
+				return A2(
+					_elm_lang$core$List$member,
+					x,
+					_user$project$Main$canGo(_p23));
+			},
+			directions);
+		var rateOfMovement = 200;
+		var updatePosition = F2(
+			function (dir, pos) {
+				var _p22 = dir;
+				switch (_p22.ctor) {
+					case 'Up':
+						return A2(
+							_elm_lang$core$Tuple$mapSecond,
+							function (y) {
+								return y + (rateOfMovement * t);
+							},
+							pos);
+					case 'Down':
+						return A2(
+							_elm_lang$core$Tuple$mapSecond,
+							function (y) {
+								return y - (rateOfMovement * t);
+							},
+							pos);
+					case 'Left':
+						return A2(
+							_elm_lang$core$Tuple$mapFirst,
+							function (y) {
+								return y - (rateOfMovement * t);
+							},
+							pos);
+					default:
+						return A2(
+							_elm_lang$core$Tuple$mapFirst,
+							function (y) {
+								return y + (rateOfMovement * t);
+							},
+							pos);
+				}
+			});
+		var newPos = A3(_elm_lang$core$List$foldl, updatePosition, _p21.position, validDirections);
+		return _elm_lang$core$Native_Utils.update(
+			_p23,
+			{position: newPos});
+	});
+var _user$project$Main$updateGame = F2(
+	function (_p25, _p24) {
+		var _p26 = _p25;
+		var _p27 = _p24;
+		return _elm_lang$core$Native_Utils.update(
+			_p27,
+			{
+				player: A3(_user$project$Main$updatePlayer, _p26.delta, _p26.directions, _p27.player)
+			});
+	});
 var _user$project$Main$getInput = F2(
 	function (game, delta) {
+		var verticals = (A2(_elm_lang$core$Set$member, 38, game.keysDown) && A2(_elm_lang$core$Set$member, 40, game.keysDown)) ? {ctor: '[]'} : (A2(_elm_lang$core$Set$member, 38, game.keysDown) ? {
+			ctor: '::',
+			_0: _user$project$Main$Up,
+			_1: {ctor: '[]'}
+		} : (A2(_elm_lang$core$Set$member, 40, game.keysDown) ? {
+			ctor: '::',
+			_0: _user$project$Main$Down,
+			_1: {ctor: '[]'}
+		} : {ctor: '[]'}));
+		var horizontals = (A2(_elm_lang$core$Set$member, 37, game.keysDown) && A2(_elm_lang$core$Set$member, 39, game.keysDown)) ? {ctor: '[]'} : (A2(_elm_lang$core$Set$member, 37, game.keysDown) ? {
+			ctor: '::',
+			_0: _user$project$Main$Left,
+			_1: {ctor: '[]'}
+		} : (A2(_elm_lang$core$Set$member, 39, game.keysDown) ? {
+			ctor: '::',
+			_0: _user$project$Main$Right,
+			_1: {ctor: '[]'}
+		} : {ctor: '[]'}));
 		return {
 			space: A2(
 				_elm_lang$core$Set$member,
@@ -11878,21 +11969,20 @@ var _user$project$Main$getInput = F2(
 					_elm_lang$core$Native_Utils.chr(' ')),
 				game.keysDown),
 			delta: _elm_lang$core$Time$inSeconds(delta),
-			horizontalDirection: (A2(_elm_lang$core$Set$member, 37, game.keysDown) && A2(_elm_lang$core$Set$member, 39, game.keysDown)) ? _user$project$Main$HorizontalNeutral : (A2(_elm_lang$core$Set$member, 37, game.keysDown) ? _user$project$Main$HLeft : (A2(_elm_lang$core$Set$member, 39, game.keysDown) ? _user$project$Main$HRight : _user$project$Main$HorizontalNeutral)),
-			verticalDirection: (A2(_elm_lang$core$Set$member, 38, game.keysDown) && A2(_elm_lang$core$Set$member, 40, game.keysDown)) ? _user$project$Main$VerticalNeutral : (A2(_elm_lang$core$Set$member, 38, game.keysDown) ? _user$project$Main$VUp : (A2(_elm_lang$core$Set$member, 40, game.keysDown) ? _user$project$Main$VDown : _user$project$Main$VerticalNeutral))
+			directions: A2(_elm_lang$core$Basics_ops['++'], horizontals, verticals)
 		};
 	});
 var _user$project$Main$update = F2(
 	function (msg, game) {
-		var _p15 = msg;
-		switch (_p15.ctor) {
+		var _p28 = msg;
+		switch (_p28.ctor) {
 			case 'KeyDown':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
 						{
-							keysDown: A2(_elm_lang$core$Set$insert, _p15._0, game.keysDown)
+							keysDown: A2(_elm_lang$core$Set$insert, _p28._0, game.keysDown)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -11902,12 +11992,12 @@ var _user$project$Main$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
 						{
-							keysDown: A2(_elm_lang$core$Set$remove, _p15._0, game.keysDown)
+							keysDown: A2(_elm_lang$core$Set$remove, _p28._0, game.keysDown)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
-				var input = A2(_user$project$Main$getInput, game, _p15._0);
+				var input = A2(_user$project$Main$getInput, game, _p28._0);
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_user$project$Main$updateGame, input, game),
@@ -11918,7 +12008,7 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						game,
-						{windowDimensions: _p15._0}),
+						{windowDimensions: _p28._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
@@ -11943,7 +12033,7 @@ var _user$project$Main$KeyUp = function (a) {
 var _user$project$Main$KeyDown = function (a) {
 	return {ctor: 'KeyDown', _0: a};
 };
-var _user$project$Main$subscriptions = function (_p16) {
+var _user$project$Main$subscriptions = function (_p29) {
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',

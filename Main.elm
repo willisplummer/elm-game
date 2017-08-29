@@ -62,21 +62,27 @@ initialPlayer : Player
 initialPlayer =
     { orientation = North
     , position = ( 0, 0 )
+    , size = ( 15, 15 )
     }
 
 
+type alias Size =
+    ( Float, Float )
+
+
 type alias PositionObject =
-    { color : Color, kind : Object, position : ( Float, Float ), shape : Shape }
+    { color : Color, kind : Object, position : ( Float, Float ), size : Size }
 
 
 initialObjects : List PositionObject
 initialObjects =
-    [ { color = green, kind = Bed, position = ( gameWidth / 2, gameHeight / 2 ), shape = rect 80 160 } ]
+    [ { color = green, kind = Bed, position = ( gameWidth / 2, gameHeight / 2 ), size = ( 80, 160 ) } ]
 
 
 type alias Player =
     { orientation : Orientation
     , position : ( Float, Float )
+    , size : Size
     }
 
 
@@ -101,101 +107,148 @@ type Object
 
 
 updateGame : KeyInput -> GameState -> GameState
-updateGame { delta, horizontalDirection, verticalDirection } ({ player } as game) =
+updateGame { delta, directions } ({ player } as game) =
+    { game
+        | player = updatePlayer delta directions player
+    }
+
+
+top : ( Float, Float ) -> Size -> Float
+top ( x, y ) ( w, h ) =
+    y + h / 2
+
+
+left : ( Float, Float ) -> Size -> Float
+left ( x, _ ) ( w, _ ) =
+    x - w / 2
+
+
+bottom : ( Float, Float ) -> Size -> Float
+bottom ( _, y ) ( _, h ) =
+    y - h / 2
+
+
+right : ( Float, Float ) -> Size -> Float
+right ( x, _ ) ( w, _ ) =
+    x + w / 2
+
+
+canGo : Player -> List Direction
+canGo player =
     let
-        isColliding =
-            checkCollisions game
+        upperLimit =
+            gameHeight / 2
+
+        lowerLimit =
+            -(gameHeight / 2)
+
+        leftLimit =
+            -(gameWidth / 2)
+
+        rightLimit =
+            gameWidth / 2
+
+        pTop =
+            top player.position player.size
+
+        pBottom =
+            bottom player.position player.size
+
+        pLeft =
+            left player.position player.size
+
+        pRight =
+            right player.position player.size
+
+        atTop =
+            upperLimit <= pTop
+
+        atBottom =
+            lowerLimit >= pBottom
+
+        atLeft =
+            leftLimit >= pLeft
+
+        atRight =
+            rightLimit <= pRight
+
+        alwaysCan =
+            [ Left, Right, Down ]
     in
-    if isColliding then
-        game
+    if atTop then
+        alwaysCan
     else
-        { game
-            | player = updatePlayer delta horizontalDirection verticalDirection player
-        }
+        alwaysCan ++ [ Up ]
 
 
-checkCollisions : GameState -> Bool
-checkCollisions { player, objects } =
-    List.member True (List.map (\x -> x.position == player.position) objects)
-
-
-updatePlayer : Time -> HorizontalDirection -> VerticalDirection -> Player -> Player
-updatePlayer t hdir vdir ({ position, orientation } as player) =
+updatePlayer : Time -> List Direction -> Player -> Player
+updatePlayer t directions ({ position, orientation } as player) =
     let
         rateOfMovement =
             200
 
-        oldHPos =
-            Tuple.first position
+        validDirections =
+            List.filter (\x -> List.member x (canGo player)) directions
 
-        newHPos =
-            case hdir of
-                HLeft ->
-                    oldHPos - rateOfMovement * t
+        updatePosition dir pos =
+            case dir of
+                Up ->
+                    Tuple.mapSecond (\y -> y + rateOfMovement * t) pos
 
-                HRight ->
-                    oldHPos + rateOfMovement * t
+                Down ->
+                    Tuple.mapSecond (\y -> y - rateOfMovement * t) pos
 
-                HorizontalNeutral ->
-                    oldHPos
+                Left ->
+                    Tuple.mapFirst (\y -> y - rateOfMovement * t) pos
 
-        oldVPos =
-            Tuple.second position
+                Right ->
+                    Tuple.mapFirst (\y -> y + rateOfMovement * t) pos
 
-        newVPos =
-            case vdir of
-                VDown ->
-                    oldVPos - rateOfMovement * t
-
-                VUp ->
-                    oldVPos + rateOfMovement * t
-
-                VerticalNeutral ->
-                    oldVPos
+        newPos =
+            List.foldl updatePosition position validDirections
     in
     { player
-        | position = ( newHPos, newVPos )
+        | position = newPos
     }
 
 
-type HorizontalDirection
-    = HLeft
-    | HRight
-    | HorizontalNeutral
-
-
-type VerticalDirection
-    = VUp
-    | VDown
-    | VerticalNeutral
+type Direction
+    = Left
+    | Right
+    | Up
+    | Down
 
 
 type alias KeyInput =
-    { space : Bool, horizontalDirection : HorizontalDirection, verticalDirection : VerticalDirection, delta : Float }
+    { space : Bool, directions : List Direction, delta : Float }
 
 
 getInput : GameState -> Float -> KeyInput
 getInput game delta =
+    let
+        horizontals =
+            if Set.member 37 game.keysDown && Set.member 39 game.keysDown then
+                []
+            else if Set.member 37 game.keysDown then
+                [ Left ]
+            else if Set.member 39 game.keysDown then
+                [ Right ]
+            else
+                []
+
+        verticals =
+            if Set.member 38 game.keysDown && Set.member 40 game.keysDown then
+                []
+            else if Set.member 38 game.keysDown then
+                [ Up ]
+            else if Set.member 40 game.keysDown then
+                [ Down ]
+            else
+                []
+    in
     { space = Set.member (Char.toCode ' ') game.keysDown
     , delta = inSeconds delta
-    , horizontalDirection =
-        if Set.member 37 game.keysDown && Set.member 39 game.keysDown then
-            HorizontalNeutral
-        else if Set.member 37 game.keysDown then
-            HLeft
-        else if Set.member 39 game.keysDown then
-            HRight
-        else
-            HorizontalNeutral
-    , verticalDirection =
-        if Set.member 38 game.keysDown && Set.member 40 game.keysDown then
-            VerticalNeutral
-        else if Set.member 38 game.keysDown then
-            VUp
-        else if Set.member 40 game.keysDown then
-            VDown
-        else
-            VerticalNeutral
+    , directions = horizontals ++ verticals
     }
 
 
@@ -274,11 +327,11 @@ view { windowDimensions, objects, player } =
                       ]
                     , List.map
                         (\obj ->
-                            obj.shape
+                            rect (Tuple.first obj.size) (Tuple.second obj.size)
                                 |> make obj obj.color
                         )
                         objects
-                    , [ oval 15 15
+                    , [ oval (Tuple.first player.size) (Tuple.second player.size)
                             |> make player white
                       ]
                     ]
